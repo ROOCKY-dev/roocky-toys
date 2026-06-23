@@ -2,15 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
-// Hide from Turbopack static analysis
-const getChildProcess = () => {
-    if (typeof window === 'undefined') {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        return require('child_process');
-    }
-    return null;
-};
-
 // Global cache to persist across hot reloads in dev, but mostly for prod state
 const globalAny: any = global;
 if (!globalAny.botProcesses) {
@@ -40,13 +31,16 @@ client.login('${token}').catch(console.error);
 
     fs.writeFileSync(scriptPath, injectedCode);
 
-    const cp = getChildProcess();
-    if (!cp) return false;
+    // Bypass Turbopack static AST analysis completely
+    const spawnScript = new Function('scriptPath', `
+        const cp = require('child_process');
+        return cp.spawn('node', [scriptPath], {
+            detached: false,
+            stdio: 'ignore'
+        });
+    `);
 
-    const child = cp.spawn('node', [scriptPath], {
-        detached: false,
-        stdio: 'ignore'
-    });
+    const child = spawnScript(scriptPath);
 
     botProcesses.set(id, child);
 
