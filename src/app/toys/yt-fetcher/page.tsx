@@ -32,25 +32,22 @@ export default function YTFetcher() {
       return;
     }
 
-    setLoading(true);
-    setError('');
-    setMetadata(null);
-
-    // Simulate API fetch delay for the UI
-    setTimeout(() => {
-      // Mocking metadata parsing since ytdl-core requires backend setup
-      setMetadata({
-        title: 'YouTube Video Example Title (Parsed from URL)',
-        thumbnail: `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
-        duration: '10:45',
-        channel: 'Example Channel'
-      });
+    try {
+      const res = await fetch(`/api/yt?url=${encodeURIComponent(url)}`);
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.error || 'Failed to fetch video');
+      
+      setMetadata(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   const handleDownload = (format: 'audio' | 'video') => {
-    alert(`Downloading ${format} is currently simulated.\nTo enable real downloads, configure ytdl-core or yt-dlp in the Next.js API routes.`);
+    window.location.href = `/api/yt/download?url=${encodeURIComponent(url)}&format=${format}`;
   };
 
   return (
