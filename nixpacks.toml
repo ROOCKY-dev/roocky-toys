@@ -1,8 +1,8 @@
 providers = ["node"]
 
 [phases.setup]
-nixPkgs = ["...", "python3", "ffmpeg"]
+nixPkgs = ["...", "python3", "python3Packages.pip", "ffmpeg"]
 
 [phases.installPython]
 dependsOn = ["setup"]
-cmds = ["pip install yt-dlp discord.py --break-system-packages"]
+cmds = ["python3 -m pip install yt-dlp discord.py --break-system-packages"]
