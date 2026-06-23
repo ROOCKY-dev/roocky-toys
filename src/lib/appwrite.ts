@@ -1,27 +1,19 @@
-import { Client, Account, Databases, ID } from 'appwrite';
+import { Client, Account, Databases, Storage, ID } from 'appwrite';
 
-const client = new Client();
+export const APPWRITE_CONFIG = {
+  endpoint: process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || '',
+  projectId: process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '',
+  dbId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || '',
+  usersCollId: process.env.NEXT_PUBLIC_APPWRITE_USERS_COLLECTION_ID || '',
+  scoresCollId: process.env.NEXT_PUBLIC_APPWRITE_SCORES_COLLECTION_ID || '',
+  bucketId: process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID || ''
+};
 
-if (
-  process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT && 
-  process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID
-) {
-  client
-    .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
-    .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID);
-} else {
-  // Graceful fallback for local dev when vars aren't set
-  client
-    .setEndpoint('https://cloud.appwrite.io/v1')
-    .setProject('dummy-project');
-}
+export const client = new Client()
+  .setEndpoint(APPWRITE_CONFIG.endpoint)
+  .setProject(APPWRITE_CONFIG.projectId);
 
 export const account = new Account(client);
 export const databases = new Databases(client);
+export const storage = new Storage(client);
 export { ID };
-
-export const APPWRITE_CONFIG = {
-  dbId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || 'dummy-db',
-  usersCollId: process.env.NEXT_PUBLIC_APPWRITE_USERS_COLLECTION_ID || 'dummy-users',
-  scoresCollId: process.env.NEXT_PUBLIC_APPWRITE_SCORES_COLLECTION_ID || 'dummy-scores',
-};

@@ -34,9 +34,9 @@ export const TOYS: Toy[] = [
     category: 'tool',
     tags: ['utility', 'files', 'p2p'],
     date: '2026-06-25',
-    path: '#',
+    path: '/toys/drop-share',
     color: '#34d399',
-    status: 'coming-soon',
+    status: 'live',
   },
   {
     id: 'yt-fetcher',
@@ -46,9 +46,9 @@ export const TOYS: Toy[] = [
     category: 'tool',
     tags: ['utility', 'media', 'downloader'],
     date: '2026-06-26',
-    path: '#',
+    path: '/toys/yt-fetcher',
     color: '#f87171',
-    status: 'coming-soon',
+    status: 'live',
   },
   {
     id: 'bot-runner',

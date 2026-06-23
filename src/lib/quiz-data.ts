@@ -1,42 +1,119 @@
-export type QuizCategory = 'All' | 'Tech' | 'Science' | 'Pop Culture' | 'General' | 'Gaming';
+export type QuizCategory = 'All' | 'Tech' | 'Science' | 'Islamic History' | 'Arab Culture' | 'General' | 'Gaming';
+export type Language = 'en' | 'ar';
+
+export interface LocalizedText {
+  question: string;
+  options: string[];
+}
 
 export interface Question {
   id: string;
   category: QuizCategory;
-  text: string;
-  options: string[];
+  en: LocalizedText;
+  ar: LocalizedText;
   correct: number;
 }
 
 export const QUIZ_QUESTIONS: Question[] = [
+  // Islamic History
+  { 
+    id: 'ih1', category: 'Islamic History', correct: 1,
+    en: { question: 'In which city was the Prophet Muhammad (PBUH) born?', options: ['Medina', 'Mecca', 'Jerusalem', 'Damascus'] },
+    ar: { question: 'في أي مدينة وُلد النبي محمد (صلى الله عليه وسلم)؟', options: ['المدينة المنورة', 'مكة المكرمة', 'القدس', 'دمشق'] }
+  },
+  { 
+    id: 'ih2', category: 'Islamic History', correct: 2,
+    en: { question: 'Who was the first Caliph of Islam?', options: ['Umar ibn Al-Khattab', 'Ali ibn Abi Talib', 'Abu Bakr Al-Siddiq', 'Uthman ibn Affan'] },
+    ar: { question: 'من هو أول خليفة في الإسلام؟', options: ['عمر بن الخطاب', 'علي بن أبي طالب', 'أبو بكر الصديق', 'عثمان بن عفان'] }
+  },
+  { 
+    id: 'ih3', category: 'Islamic History', correct: 0,
+    en: { question: 'In which Islamic month is fasting obligatory?', options: ['Ramadan', 'Shawwal', 'Muharram', 'Rajab'] },
+    ar: { question: 'في أي شهر هجري يجب الصيام؟', options: ['رمضان', 'شوال', 'محرم', 'رجب'] }
+  },
+  { 
+    id: 'ih4', category: 'Islamic History', correct: 1,
+    en: { question: 'Which battle is considered the first major battle in Islamic history?', options: ['Battle of Uhud', 'Battle of Badr', 'Battle of Khandaq', 'Battle of Yarmouk'] },
+    ar: { question: 'ما هي المعركة التي تُعتبر أول معركة كبرى في التاريخ الإسلامي؟', options: ['غزوة أحد', 'غزوة بدر', 'غزوة الخندق', 'معركة اليرموك'] }
+  },
+  { 
+    id: 'ih5', category: 'Islamic History', correct: 3,
+    en: { question: 'Which Umayyad Caliph built the Dome of the Rock in Jerusalem?', options: ['Muawiyah I', 'Umar II', 'Al-Walid I', 'Abd al-Malik ibn Marwan'] },
+    ar: { question: 'من هو الخليفة الأموي الذي بنى قبة الصخرة في القدس؟', options: ['معاوية بن أبي سفيان', 'عمر بن عبد العزيز', 'الوليد بن عبد الملك', 'عبد الملك بن مروان'] }
+  },
+  
+  // Arab Culture
+  { 
+    id: 'ac1', category: 'Arab Culture', correct: 2,
+    en: { question: 'What is the traditional Arab headdress worn by men called?', options: ['Fez', 'Turban', 'Keffiyeh / Ghutra', 'Taqiyah'] },
+    ar: { question: 'ماذا يُسمى غطاء الرأس التقليدي الذي يرتديه الرجال العرب؟', options: ['الطربوش', 'العمامة', 'الكوفية / الغترة', 'الطاقية'] }
+  },
+  { 
+    id: 'ac2', category: 'Arab Culture', correct: 0,
+    en: { question: 'Which Arabic instrument is a short-necked, pear-shaped stringed instrument?', options: ['Oud', 'Qanun', 'Nay', 'Rebab'] },
+    ar: { question: 'ما هي الآلة الموسيقية العربية الوترية ذات العنق القصير والشكل الكمثري؟', options: ['العود', 'القانون', 'الناي', 'الربابة'] }
+  },
+  { 
+    id: 'ac3', category: 'Arab Culture', correct: 1,
+    en: { question: 'Which Arab city is famous for its ancient Nabataean architecture carved into red rock?', options: ['Palmyra', 'Petra', 'Baalbek', 'Shibam'] },
+    ar: { question: 'أي مدينة عربية تشتهر بعمارتها النبطية القديمة المنحوتة في الصخر الأحمر؟', options: ['تدمر', 'البتراء', 'بعلبك', 'شبام'] }
+  },
+  { 
+    id: 'ac4', category: 'Arab Culture', correct: 3,
+    en: { question: 'Who is considered one of the greatest Arab poets of all time (Al-Mutanabbi)?', options: ['Abu Nuwas', 'Antarah ibn Shaddad', 'Imru\' al-Qais', 'Al-Mutanabbi'] },
+    ar: { question: 'من يُعتبر من أعظم الشعراء العرب في كل العصور وصاحب قصيدة "الخيل والليل والبيداء تعرفني"؟', options: ['أبو نواس', 'عنترة بن شداد', 'امرؤ القيس', 'المتنبي'] }
+  },
+
   // Tech
-  { id: 't1', category: 'Tech', text: 'What does "HTTP" stand for?', options: ['HyperText Transfer Protocol', 'HyperLink Transfer Technology', 'HyperText Transmission Process', 'Hyper Transfer Text Protocol'], correct: 0 },
-  { id: 't2', category: 'Tech', text: 'Which programming language is known as the "mother of all languages"?', options: ['Java', 'C', 'Assembly', 'Python'], correct: 1 },
-  { id: 't3', category: 'Tech', text: 'What is the main function of a DNS?', options: ['Secure networks', 'Store databases', 'Translate domain names to IP addresses', 'Host websites'], correct: 2 },
-  { id: 't4', category: 'Tech', text: 'In what year was the iPhone first released?', options: ['2005', '2007', '2009', '2010'], correct: 1 },
-  { id: 't5', category: 'Tech', text: 'What company acquired GitHub in 2018?', options: ['Google', 'Amazon', 'Facebook', 'Microsoft'], correct: 3 },
+  { 
+    id: 't1', category: 'Tech', correct: 0,
+    en: { question: 'What does "HTTP" stand for?', options: ['HyperText Transfer Protocol', 'HyperLink Transfer Technology', 'HyperText Transmission Process', 'Hyper Transfer Text Protocol'] },
+    ar: { question: 'ماذا يعني اختصار "HTTP"؟', options: ['بروتوكول نقل النص التشعبي', 'تقنية نقل الروابط التشعبية', 'عملية إرسال النص التشعبي', 'بروتوكول نقل النصوص الفائقة'] }
+  },
+  { 
+    id: 't2', category: 'Tech', correct: 1,
+    en: { question: 'Which programming language is known as the "mother of all languages"?', options: ['Java', 'C', 'Assembly', 'Python'] },
+    ar: { question: 'أي لغة برمجة تُعرف بـ "أم اللغات"؟', options: ['جافا (Java)', 'سي (C)', 'لغة التجميع (Assembly)', 'بايثون (Python)'] }
+  },
+  { 
+    id: 't3', category: 'Tech', correct: 2,
+    en: { question: 'What is the main function of a DNS?', options: ['Secure networks', 'Store databases', 'Translate domain names to IP addresses', 'Host websites'] },
+    ar: { question: 'ما هي الوظيفة الرئيسية لنظام أسماء النطاقات (DNS)؟', options: ['تأمين الشبكات', 'تخزين قواعد البيانات', 'ترجمة أسماء النطاقات إلى عناوين IP', 'استضافة المواقع'] }
+  },
+
   // Science
-  { id: 's1', category: 'Science', text: 'What is the chemical symbol for Gold?', options: ['Go', 'Gd', 'Au', 'Ag'], correct: 2 },
-  { id: 's2', category: 'Science', text: 'Which planet is known as the Red Planet?', options: ['Venus', 'Mars', 'Jupiter', 'Saturn'], correct: 1 },
-  { id: 's3', category: 'Science', text: 'What is the hardest natural substance on Earth?', options: ['Gold', 'Iron', 'Diamond', 'Platinum'], correct: 2 },
-  { id: 's4', category: 'Science', text: 'What force keeps planets in orbit around the sun?', options: ['Magnetism', 'Friction', 'Gravity', 'Centrifugal Force'], correct: 2 },
-  { id: 's5', category: 'Science', text: 'At what temperature are Celsius and Fahrenheit equal?', options: ['-40', '0', '32', '100'], correct: 0 },
-  // Pop Culture
-  { id: 'p1', category: 'Pop Culture', text: 'Who played Neo in The Matrix?', options: ['Tom Cruise', 'Keanu Reeves', 'Brad Pitt', 'Will Smith'], correct: 1 },
-  { id: 'p2', category: 'Pop Culture', text: 'Which movie won the first Academy Award for Best Animated Feature?', options: ['Toy Story', 'Shrek', 'Finding Nemo', 'Spirited Away'], correct: 1 },
-  { id: 'p3', category: 'Pop Culture', text: 'What is the highest-grossing film of all time (as of 2024)?', options: ['Avatar', 'Avengers: Endgame', 'Titanic', 'Star Wars: The Force Awakens'], correct: 0 },
-  { id: 'p4', category: 'Pop Culture', text: 'Who is the author of the Harry Potter series?', options: ['J.R.R. Tolkien', 'George R.R. Martin', 'J.K. Rowling', 'Stephen King'], correct: 2 },
-  { id: 'p5', category: 'Pop Culture', text: 'What band was John Lennon a part of?', options: ['The Rolling Stones', 'The Who', 'The Beatles', 'Pink Floyd'], correct: 2 },
+  { 
+    id: 's1', category: 'Science', correct: 2,
+    en: { question: 'What is the chemical symbol for Gold?', options: ['Go', 'Gd', 'Au', 'Ag'] },
+    ar: { question: 'ما هو الرمز الكيميائي للذهب؟', options: ['Go', 'Gd', 'Au', 'Ag'] }
+  },
+  { 
+    id: 's2', category: 'Science', correct: 1,
+    en: { question: 'Which planet is known as the Red Planet?', options: ['Venus', 'Mars', 'Jupiter', 'Saturn'] },
+    ar: { question: 'أي كوكب يُعرف بالكوكب الأحمر؟', options: ['الزهرة', 'المريخ', 'المشتري', 'زحل'] }
+  },
+
   // General
-  { id: 'g1', category: 'General', text: 'What is the capital of Japan?', options: ['Seoul', 'Beijing', 'Tokyo', 'Bangkok'], correct: 2 },
-  { id: 'g2', category: 'General', text: 'How many continents are there?', options: ['5', '6', '7', '8'], correct: 2 },
-  { id: 'g3', category: 'General', text: 'Which is the longest river in the world?', options: ['Amazon', 'Nile', 'Yangtze', 'Mississippi'], correct: 1 },
-  { id: 'g4', category: 'General', text: 'What is the largest ocean on Earth?', options: ['Atlantic', 'Indian', 'Arctic', 'Pacific'], correct: 3 },
-  { id: 'g5', category: 'General', text: 'In which year did World War II end?', options: ['1941', '1943', '1945', '1947'], correct: 2 },
+  { 
+    id: 'g1', category: 'General', correct: 2,
+    en: { question: 'What is the capital of Japan?', options: ['Seoul', 'Beijing', 'Tokyo', 'Bangkok'] },
+    ar: { question: 'ما هي عاصمة اليابان؟', options: ['سيول', 'بكين', 'طوكيو', 'بانكوك'] }
+  },
+  { 
+    id: 'g2', category: 'General', correct: 2,
+    en: { question: 'How many continents are there?', options: ['5', '6', '7', '8'] },
+    ar: { question: 'كم عدد القارات في العالم؟', options: ['5', '6', '7', '8'] }
+  },
+
   // Gaming
-  { id: 'v1', category: 'Gaming', text: 'What is the best-selling video game of all time?', options: ['Minecraft', 'Tetris', 'GTA V', 'Wii Sports'], correct: 0 },
-  { id: 'v2', category: 'Gaming', text: 'Which character is the mascot of SEGA?', options: ['Mario', 'Pac-Man', 'Sonic', 'Crash Bandicoot'], correct: 2 },
-  { id: 'v3', category: 'Gaming', text: 'In what game do you build and survive in a blocky 3D world?', options: ['Terraria', 'Roblox', 'Minecraft', 'Fortnite'], correct: 2 },
-  { id: 'v4', category: 'Gaming', text: 'What is the name of the princess in The Legend of Zelda?', options: ['Peach', 'Zelda', 'Daisy', 'Rosalina'], correct: 1 },
-  { id: 'v5', category: 'Gaming', text: 'Which console is developed by Sony?', options: ['Xbox', 'Switch', 'PlayStation', 'Genesis'], correct: 2 },
+  { 
+    id: 'v1', category: 'Gaming', correct: 0,
+    en: { question: 'What is the best-selling video game of all time?', options: ['Minecraft', 'Tetris', 'GTA V', 'Wii Sports'] },
+    ar: { question: 'ما هي لعبة الفيديو الأكثر مبيعًا في التاريخ؟', options: ['ماين كرافت (Minecraft)', 'تتريس (Tetris)', 'جتا 5 (GTA V)', 'وي سبورتس (Wii Sports)'] }
+  },
+  { 
+    id: 'v2', category: 'Gaming', correct: 2,
+    en: { question: 'Which character is the mascot of SEGA?', options: ['Mario', 'Pac-Man', 'Sonic', 'Crash Bandicoot'] },
+    ar: { question: 'أي شخصية هي التميمة الرسمية لشركة سيجا (SEGA)؟', options: ['ماريو', 'باك مان', 'سونيك', 'كراش بانديكوت'] }
+  }
 ];
