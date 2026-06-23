@@ -58,8 +58,8 @@ export const TOYS: Toy[] = [
     category: 'service',
     tags: ['server', 'bots', 'discord'],
     date: '2026-06-28',
-    path: '#',
+    path: '/toys/bot-runner',
     color: '#60a5fa',
-    status: 'coming-soon',
+    status: 'live',
   }
 ];
