@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Youtube, Download, Music, Video, Search, AlertCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, PlaySquare, Download, Music, Video, Search, AlertCircle, Loader2 } from 'lucide-react';
 
 type MediaMetadata = {
   title: string;
@@ -61,7 +61,7 @@ export default function YTFetcher() {
 
       <div className="flex-1 glass-card p-8 md:p-12 relative overflow-hidden flex flex-col items-center">
         <div className="w-20 h-20 bg-[#FF0000]/10 text-[#FF0000] rounded-2xl flex items-center justify-center text-4xl shadow-inner border border-[#FF0000]/30 mb-8 animate-pulse-glow">
-          <Youtube size={40} />
+          <PlaySquare size={40} />
         </div>
         <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">YT Fetcher</h1>
         <p className="text-[var(--text-secondary)] mb-12 max-w-md mx-auto text-center">
