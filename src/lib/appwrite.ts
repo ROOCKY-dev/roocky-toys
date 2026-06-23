@@ -1,8 +1,8 @@
 import { Client, Account, Databases, Storage, ID } from 'appwrite';
 
 export const APPWRITE_CONFIG = {
-  endpoint: process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || '',
-  projectId: process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '',
+  endpoint: process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1',
+  projectId: process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || 'dummy_project',
   dbId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || '',
   usersCollId: process.env.NEXT_PUBLIC_APPWRITE_USERS_COLLECTION_ID || '',
   scoresCollId: process.env.NEXT_PUBLIC_APPWRITE_SCORES_COLLECTION_ID || '',
