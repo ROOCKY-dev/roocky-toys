@@ -20,7 +20,7 @@ const DIFFICULTIES = {
 type Player = { id: string; name: string; score: number; finished: boolean };
 type Lobby = {
   $id: string;
-  roomCode: string;
+  lobbyCode: string;
   hostId: string;
   status: 'waiting' | 'playing' | 'finished';
   players: string; // JSON string of Player[]
@@ -52,7 +52,7 @@ export default function QuizMaster() {
   const [playerId, setPlayerId] = useState('');
   
   // Multiplayer State
-  const [roomCode, setRoomCode] = useState('');
+  const [lobbyCode, setRoomCode] = useState('');
   const [lobby, setLobby] = useState<Lobby | null>(null);
   const [parsedPlayers, setParsedPlayers] = useState<Player[]>([]);
   const [mpLoading, setMpLoading] = useState(false);
@@ -231,7 +231,7 @@ export default function QuizMaster() {
       const doc = await databases.createDocument(
         APPWRITE_CONFIG.dbId, APPWRITE_CONFIG.lobbiesCollId, ID.unique(),
         {
-          roomCode: code,
+          lobbyCode: code,
           hostId: playerId,
           status: 'waiting',
           players: JSON.stringify(pl),
@@ -249,11 +249,11 @@ export default function QuizMaster() {
   };
 
   const joinLobby = async () => {
-    if (!playerName.trim() || !roomCode.trim()) return setMpError('Name and Code required');
+    if (!playerName.trim() || !lobbyCode.trim()) return setMpError('Name and Code required');
     setMpLoading(true); setMpError('');
     try {
       const search = await databases.listDocuments(APPWRITE_CONFIG.dbId, APPWRITE_CONFIG.lobbiesCollId, [
-        Query.equal('roomCode', roomCode.toUpperCase())
+        Query.equal('lobbyCode', lobbyCode.toUpperCase())
       ]);
       if (search.documents.length === 0) throw new Error('Room not found');
       
@@ -304,7 +304,7 @@ export default function QuizMaster() {
       complete: 'Quiz Complete!', scored: 'You scored', correct: 'Correct', accuracy: 'Accuracy', bestStreak: 'Best Streak',
       playAgain: 'Play Again', share: 'Share Score', loginRequired: 'Log in to save score.', back: 'Back',
       multiplayerSetup: 'Multiplayer Room', createRoom: 'Create Room', joinRoom: 'Join Room', namePlaceholder: 'Enter your nickname',
-      roomCodePlaceholder: 'Enter 6-digit Code', waiting: 'Waiting for Host...', startMp: 'Start Game', players: 'Players',
+      lobbyCodePlaceholder: 'Enter 6-digit Code', waiting: 'Waiting for Host...', startMp: 'Start Game', players: 'Players',
       leave: 'Leave Room', finishWaiting: 'Waiting for others to finish...', leaderboard: 'Final Leaderboard'
     },
     ar: {
@@ -313,7 +313,7 @@ export default function QuizMaster() {
       complete: 'انتهى الاختبار!', scored: 'لقد سجلت', correct: 'إجابة صحيحة', accuracy: 'الدقة', bestStreak: 'أفضل متتالية',
       playAgain: 'العب مرة أخرى', share: 'شارك النتيجة', loginRequired: 'سجل دخول لحفظ النتيجة.', back: 'رجوع',
       multiplayerSetup: 'غرفة اللعب الجماعي', createRoom: 'إنشاء غرفة', joinRoom: 'الانضمام لغرفة', namePlaceholder: 'أدخل اسمك',
-      roomCodePlaceholder: 'رمز الغرفة (6 أحرف)', waiting: 'في انتظار المضيف...', startMp: 'ابدأ اللعبة', players: 'اللاعبين',
+      lobbyCodePlaceholder: 'رمز الغرفة (6 أحرف)', waiting: 'في انتظار المضيف...', startMp: 'ابدأ اللعبة', players: 'اللاعبين',
       leave: 'مغادرة الغرفة', finishWaiting: 'في انتظار إنهاء الآخرين...', leaderboard: 'لوحة الصدارة النهائية'
     }
   };
@@ -413,13 +413,13 @@ export default function QuizMaster() {
                 <div className="mt-8 space-y-4">
                   <input 
                     type="text" 
-                    placeholder={t.roomCodePlaceholder}
+                    placeholder={t.lobbyCodePlaceholder}
                     className="w-full bg-white/5 border border-[var(--border-medium)] rounded-xl px-4 py-4 text-center font-mono tracking-widest uppercase text-xl focus:outline-none focus:border-[var(--accent-primary)] transition-colors"
-                    value={roomCode}
+                    value={lobbyCode}
                     onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
                     maxLength={6}
                   />
-                  <button onClick={joinLobby} disabled={mpLoading || !roomCode} className="btn-ghost w-full py-4 border-[var(--border-medium)] flex items-center justify-center gap-2 text-white hover:bg-white/10">
+                  <button onClick={joinLobby} disabled={mpLoading || !lobbyCode} className="btn-ghost w-full py-4 border-[var(--border-medium)] flex items-center justify-center gap-2 text-white hover:bg-white/10">
                     {mpLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : null} {t.joinRoom}
                   </button>
                 </div>
@@ -440,8 +440,8 @@ export default function QuizMaster() {
                 <div className="text-center">
                   <div className="label mb-2">Room Code</div>
                   <div className="bg-black/60 border border-[var(--border-medium)] rounded-xl px-6 py-3 font-mono text-4xl tracking-[0.2em] font-bold text-[var(--accent-primary)] flex items-center gap-4">
-                    {lobby.roomCode}
-                    <button onClick={() => navigator.clipboard.writeText(lobby.roomCode)} className="text-[var(--text-secondary)] hover:text-white">
+                    {lobby.lobbyCode}
+                    <button onClick={() => navigator.clipboard.writeText(lobby.lobbyCode)} className="text-[var(--text-secondary)] hover:text-white">
                       <Copy className="w-5 h-5" />
                     </button>
                   </div>

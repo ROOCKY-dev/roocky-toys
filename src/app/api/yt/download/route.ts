@@ -1,34 +1,26 @@
 import { NextResponse } from 'next/server';
-import youtubedl from 'youtube-dl-exec';
+import { exec } from 'child_process';
+import util from 'util';
+
+const execAsync = util.promisify(exec);
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const url = searchParams.get('url');
-  const format = searchParams.get('format') || 'video'; 
+  const type = searchParams.get('type') || 'video';
 
-  if (!url) {
-    return new NextResponse('URL is required', { status: 400 });
-  }
+  if (!url) return new NextResponse('URL is required', { status: 400 });
 
   try {
-    const formatFilter = format === 'audio' ? 'bestaudio' : 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best';
-    
-    const videoInfo: any = await youtubedl(url, {
-      dumpSingleJson: true,
-      noWarnings: true,
-      format: formatFilter,
-      addHeader: ['referer:youtube.com', 'user-agent:Mozilla/5.0']
-    });
+    const formatArg = type === 'audio' ? 'bestaudio/best' : 'best';
+    const { stdout } = await execAsync(`yt-dlp -f "${formatArg}" -g --no-warnings --add-header "referer:youtube.com" --add-header "user-agent:Mozilla/5.0" "${url.replace(/"/g, '\\"')}"`);
+    const directUrl = stdout.trim();
 
-    const directUrl = videoInfo.url || (videoInfo.formats && videoInfo.formats.find((f: any) => f.url)?.url);
+    if (!directUrl) throw new Error("No URL extracted");
 
-    if (directUrl) {
-      return NextResponse.redirect(directUrl);
-    }
-
-    return new NextResponse('Could not extract direct stream URL.', { status: 500 });
-  } catch (error: any) {
+    return NextResponse.redirect(directUrl);
+  } catch (error) {
     console.error('YT Download Error:', error);
-    return new NextResponse('Failed to process video stream. ' + error.message, { status: 500 });
+    return new NextResponse('Failed to generate download link', { status: 500 });
   }
 }
