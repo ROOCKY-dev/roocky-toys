@@ -1,14 +1,22 @@
-import { spawn, ChildProcess } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
+// Hide from Turbopack static analysis
+const getChildProcess = () => {
+    if (typeof window === 'undefined') {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        return require('child_process');
+    }
+    return null;
+};
+
 // Global cache to persist across hot reloads in dev, but mostly for prod state
 const globalAny: any = global;
 if (!globalAny.botProcesses) {
-    globalAny.botProcesses = new Map<string, ChildProcess>();
+    globalAny.botProcesses = new Map<string, any>();
 }
-const botProcesses: Map<string, ChildProcess> = globalAny.botProcesses;
+const botProcesses: Map<string, any> = globalAny.botProcesses;
 
 export async function startBot(id: string, token: string, code: string): Promise<boolean> {
     if (botProcesses.has(id)) {
@@ -32,7 +40,10 @@ client.login('${token}').catch(console.error);
 
     fs.writeFileSync(scriptPath, injectedCode);
 
-    const child = spawn('node', [scriptPath], {
+    const cp = getChildProcess();
+    if (!cp) return false;
+
+    const child = cp.spawn('node', [scriptPath], {
         detached: false,
         stdio: 'ignore'
     });
