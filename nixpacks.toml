@@ -1,5 +1,4 @@
-[providers.node]
-nodeVersion = "20"
+providers = ["node"]
 
 [phases.setup]
 nixPkgs = ["...", "python3", "ffmpeg"]
