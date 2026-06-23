@@ -1,10 +1,18 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, UploadCloud, File, Link as LinkIcon, CheckCircle2, XCircle, FileText, FileImage, FileAudio, FileVideo, FileArchive } from 'lucide-react';
-import { storage, ID, APPWRITE_CONFIG } from '@/lib/appwrite';
+import { ArrowLeft, UploadCloud, Link as LinkIcon, CheckCircle2, XCircle, FileText, FileImage, FileAudio, FileVideo, FileArchive, Clock, History, BarChart3, Trash2 } from 'lucide-react';
+import { storage, databases, ID, APPWRITE_CONFIG } from '@/lib/appwrite';
+
+type HistoryItem = {
+  id: string;
+  name: string;
+  url: string;
+  expiresAt: string | null;
+  clicks: number;
+};
 
 export default function DropShare() {
   const [file, setFile] = useState<File | null>(null);
@@ -14,6 +22,30 @@ export default function DropShare() {
   const [shareUrl, setShareUrl] = useState('');
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [expiresIn, setExpiresIn] = useState<number>(24); // hours
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('dropShareHistory');
+    if (saved) {
+      try {
+        setHistory(JSON.parse(saved));
+      } catch (e) {}
+    }
+  }, []);
+
+  const saveToHistory = (item: HistoryItem) => {
+    const newHistory = [item, ...history].slice(0, 50); // Keep last 50
+    setHistory(newHistory);
+    localStorage.setItem('dropShareHistory', JSON.stringify(newHistory));
+  };
+
+  const removeHistoryItem = (id: string) => {
+    const newHistory = history.filter(h => h.id !== id);
+    setHistory(newHistory);
+    localStorage.setItem('dropShareHistory', JSON.stringify(newHistory));
+  };
 
   const onDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -51,8 +83,8 @@ export default function DropShare() {
 
   const handleUpload = async () => {
     if (!file) return;
-    if (!APPWRITE_CONFIG.bucketId) {
-      setError('Storage Bucket is not configured. Please add NEXT_PUBLIC_APPWRITE_BUCKET_ID to your environment variables.');
+    if (!APPWRITE_CONFIG.bucketId || !APPWRITE_CONFIG.linksCollId) {
+      setError('Storage Bucket or Links Collection is not configured in .env variables.');
       return;
     }
 
@@ -61,7 +93,6 @@ export default function DropShare() {
     setError('');
 
     try {
-      // Simulate progress for smooth UI, since Appwrite upload might be very fast for small files
       const progressInterval = setInterval(() => {
         setProgress(p => Math.min(p + Math.random() * 15, 90));
       }, 200);
@@ -72,14 +103,40 @@ export default function DropShare() {
         file
       );
 
+      const fileUrl = `${APPWRITE_CONFIG.endpoint}/storage/buckets/${APPWRITE_CONFIG.bucketId}/files/${result.$id}/download?project=${APPWRITE_CONFIG.projectId}`;
+      
+      const expiresAt = expiresIn ? new Date(Date.now() + expiresIn * 60 * 60 * 1000).toISOString() : null;
+
+      const linkDoc = await databases.createDocument(
+        APPWRITE_CONFIG.dbId,
+        APPWRITE_CONFIG.linksCollId,
+        ID.unique(),
+        {
+          fileId: result.$id,
+          fileName: file.name,
+          fileSize: file.size,
+          url: fileUrl,
+          expiresAt: expiresAt,
+          clicks: 0,
+          createdAt: new Date().toISOString()
+        }
+      );
+
       clearInterval(progressInterval);
       setProgress(100);
 
-      // Generate Download URL
-      const fileUrl = `${APPWRITE_CONFIG.endpoint}/storage/buckets/${APPWRITE_CONFIG.bucketId}/files/${result.$id}/download?project=${APPWRITE_CONFIG.projectId}`;
+      const finalUrl = `${window.location.origin}/api/share/${linkDoc.$id}`;
       
+      saveToHistory({
+        id: linkDoc.$id,
+        name: file.name,
+        url: finalUrl,
+        expiresAt: expiresAt,
+        clicks: 0
+      });
+
       setTimeout(() => {
-        setShareUrl(fileUrl);
+        setShareUrl(finalUrl);
         setUploading(false);
       }, 500);
 
@@ -104,118 +161,174 @@ export default function DropShare() {
   };
 
   return (
-    <div className="pt-24 px-6 md:px-12 max-w-4xl mx-auto min-h-[calc(100vh-6rem)] flex flex-col">
-      <Link href="/" className="inline-flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-8 font-mono text-sm transition-colors w-fit">
-        <ArrowLeft className="w-4 h-4" /> Back to Gallery
-      </Link>
+    <div className="pt-24 px-6 md:px-12 max-w-6xl mx-auto min-h-[calc(100vh-6rem)] flex flex-col pb-12">
+      <div className="flex items-center justify-between mb-8">
+        <Link href="/" className="inline-flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-mono text-sm transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Back to Gallery
+        </Link>
+        <button 
+          onClick={() => setShowHistory(!showHistory)}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-colors ${showHistory ? 'bg-[var(--accent-primary)] text-white' : 'bg-white/5 hover:bg-white/10'}`}
+        >
+          <History className="w-4 h-4" /> History
+        </button>
+      </div>
 
-      <div className="flex-1 glass-card p-8 md:p-12 relative overflow-hidden flex flex-col items-center justify-center">
-        <div className="w-20 h-20 bg-[var(--text-primary)]/10 text-[var(--text-primary)] rounded-2xl flex items-center justify-center text-4xl shadow-inner border border-white/10 mb-8 animate-pulse-glow">
-          📦
-        </div>
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">Drop Share</h1>
-        <p className="text-[var(--text-secondary)] mb-12 max-w-md mx-auto text-center">Securely share files up to 50MB. Files are uploaded directly to your Appwrite Storage and expire automatically if configured.</p>
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className={`flex-1 glass-card p-8 md:p-12 relative overflow-hidden flex flex-col items-center justify-center ${showHistory ? 'lg:w-2/3' : 'w-full'}`}>
+          <div className="w-20 h-20 bg-[var(--text-primary)]/10 text-[var(--text-primary)] rounded-2xl flex items-center justify-center text-4xl shadow-inner border border-white/10 mb-8 animate-pulse-glow">
+            📦
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">Drop Share</h1>
+          <p className="text-[var(--text-secondary)] mb-12 max-w-md mx-auto text-center">Securely share files up to 30MB with expiration dates and link tracking.</p>
 
-        <div className="w-full max-w-xl">
-          <AnimatePresence mode="wait">
-            {!file && !shareUrl && (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
-                className={`relative border-2 border-dashed rounded-3xl p-12 text-center transition-all ${isDragging ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/5' : 'border-[var(--border-medium)] hover:border-[var(--text-secondary)] bg-white/5'}`}
-                onDragOver={onDragOver}
-                onDragLeave={onDragLeave}
-                onDrop={onDrop}
-              >
-                <input 
-                  type="file" 
-                  id="file-upload" 
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  onChange={handleFileSelect}
-                />
-                <UploadCloud className={`w-16 h-16 mx-auto mb-6 transition-colors ${isDragging ? 'text-[var(--accent-primary)]' : 'text-[var(--text-secondary)]'}`} />
-                <h3 className="text-xl font-bold mb-2">Drag & Drop file here</h3>
-                <p className="text-[var(--text-secondary)] font-mono text-sm">or click to browse</p>
-              </motion.div>
-            )}
-
-            {file && !shareUrl && (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="glass-card-elevated p-8 rounded-3xl w-full">
-                <div className="flex items-center gap-6 mb-8">
-                  <div className="w-20 h-20 bg-white/5 rounded-2xl flex items-center justify-center shrink-0 border border-[var(--border-subtle)]">
-                    {getFileIcon(file.type)}
-                  </div>
-                  <div className="overflow-hidden">
-                    <h3 className="text-xl font-bold truncate mb-1">{file.name}</h3>
-                    <p className="text-[var(--text-secondary)] font-mono text-sm">{(file.size / (1024 * 1024)).toFixed(2)} MB • {file.type || 'Unknown type'}</p>
-                  </div>
-                </div>
-
-                {error && (
-                  <div className="mb-6 p-4 bg-[var(--color-wrong)]/10 border border-[var(--color-wrong)]/30 rounded-xl flex items-start gap-3 text-left">
-                    <XCircle className="w-5 h-5 text-[var(--color-wrong)] shrink-0 mt-0.5" />
-                    <p className="text-sm text-[var(--color-wrong)]">{error}</p>
-                  </div>
-                )}
-
-                {uploading ? (
-                  <div>
-                    <div className="flex justify-between font-mono text-sm mb-3">
-                      <span className="text-[var(--text-secondary)]">Uploading...</span>
-                      <span className="font-bold">{Math.round(progress)}%</span>
-                    </div>
-                    <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
-                      <motion.div 
-                        className="h-full bg-[var(--accent-primary)] shadow-[0_0_10px_var(--accent-primary)]"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progress}%` }}
-                        transition={{ ease: "linear" }}
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex gap-4">
-                    <button onClick={reset} className="btn-ghost flex-1 border-[var(--border-medium)]">Cancel</button>
-                    <button onClick={handleUpload} className="btn-primary flex-1">Upload File</button>
-                  </div>
-                )}
-              </motion.div>
-            )}
-
-            {shareUrl && (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card-elevated p-8 rounded-3xl w-full text-center">
-                <div className="w-20 h-20 bg-[var(--color-correct)]/20 text-[var(--color-correct)] rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle2 className="w-10 h-10" />
-                </div>
-                <h3 className="text-2xl font-bold mb-2">Upload Complete!</h3>
-                <p className="text-[var(--text-secondary)] mb-8">Your file is ready to share.</p>
-
-                <div className="relative group mb-8">
+          <div className="w-full max-w-xl">
+            <AnimatePresence mode="wait">
+              {!file && !shareUrl && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
+                  className={`relative border-2 border-dashed rounded-3xl p-12 text-center transition-all ${isDragging ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/5' : 'border-[var(--border-medium)] hover:border-[var(--text-secondary)] bg-white/5'}`}
+                  onDragOver={onDragOver}
+                  onDragLeave={onDragLeave}
+                  onDrop={onDrop}
+                >
                   <input 
-                    type="text" 
-                    readOnly 
-                    value={shareUrl}
-                    className="w-full bg-white/5 border border-[var(--border-medium)] rounded-xl px-4 py-4 pr-32 text-sm font-mono focus:outline-none focus:border-[var(--accent-primary)] transition-colors"
+                    type="file" 
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    onChange={handleFileSelect}
                   />
-                  <button 
-                    onClick={copyToClipboard}
-                    className={`absolute right-2 top-2 bottom-2 px-4 rounded-lg font-mono text-xs uppercase font-bold transition-all ${copied ? 'bg-[var(--color-correct)] text-white' : 'bg-white/10 hover:bg-[var(--accent-primary)] hover:text-white'}`}
-                  >
-                    {copied ? 'Copied!' : 'Copy Link'}
-                  </button>
-                </div>
+                  <UploadCloud className={`w-16 h-16 mx-auto mb-6 transition-colors ${isDragging ? 'text-[var(--accent-primary)]' : 'text-[var(--text-secondary)]'}`} />
+                  <h3 className="text-xl font-bold mb-2">Drag & Drop file here</h3>
+                  <p className="text-[var(--text-secondary)] font-mono text-sm">or click to browse</p>
+                </motion.div>
+              )}
 
-                <div className="flex gap-4 justify-center">
-                  <a href={shareUrl} target="_blank" rel="noopener noreferrer" className="btn-ghost border-[var(--border-medium)]">
-                    <LinkIcon className="w-4 h-4" /> Open Link
-                  </a>
-                  <button onClick={reset} className="btn-primary">
-                    Share Another
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              {file && !shareUrl && (
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="glass-card-elevated p-8 rounded-3xl w-full">
+                  <div className="flex items-center gap-6 mb-8">
+                    <div className="w-20 h-20 bg-white/5 rounded-2xl flex items-center justify-center shrink-0 border border-[var(--border-subtle)]">
+                      {getFileIcon(file.type)}
+                    </div>
+                    <div className="overflow-hidden">
+                      <h3 className="text-xl font-bold truncate mb-1">{file.name}</h3>
+                      <p className="text-[var(--text-secondary)] font-mono text-sm">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                    </div>
+                  </div>
+
+                  <div className="mb-8">
+                    <label className="flex items-center gap-2 text-sm font-bold text-[var(--text-secondary)] mb-3">
+                      <Clock className="w-4 h-4" /> Link Expiration
+                    </label>
+                    <div className="flex gap-2">
+                      {[1, 24, 168].map(h => (
+                        <button
+                          key={h}
+                          onClick={() => setExpiresIn(h)}
+                          className={`flex-1 py-3 rounded-xl font-bold text-sm transition-colors border ${expiresIn === h ? 'bg-[var(--accent-primary)] border-[var(--accent-primary)] text-white' : 'bg-white/5 border-[var(--border-medium)] hover:border-[var(--text-primary)]'}`}
+                        >
+                          {h === 1 ? '1 Hour' : h === 24 ? '1 Day' : '7 Days'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {error && (
+                    <div className="mb-6 p-4 bg-[var(--color-wrong)]/10 border border-[var(--color-wrong)]/30 rounded-xl flex items-start gap-3 text-left">
+                      <XCircle className="w-5 h-5 text-[var(--color-wrong)] shrink-0 mt-0.5" />
+                      <p className="text-sm text-[var(--color-wrong)]">{error}</p>
+                    </div>
+                  )}
+
+                  {uploading ? (
+                    <div>
+                      <div className="flex justify-between font-mono text-sm mb-3">
+                        <span className="text-[var(--text-secondary)]">Uploading...</span>
+                        <span className="font-bold">{Math.round(progress)}%</span>
+                      </div>
+                      <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
+                        <motion.div 
+                          className="h-full bg-[var(--accent-primary)] shadow-[0_0_10px_var(--accent-primary)]"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${progress}%` }}
+                          transition={{ ease: "linear" }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex gap-4">
+                      <button onClick={reset} className="btn-ghost flex-1 border-[var(--border-medium)]">Cancel</button>
+                      <button onClick={handleUpload} className="btn-primary flex-1">Upload File</button>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              {shareUrl && (
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card-elevated p-8 rounded-3xl w-full text-center">
+                  <div className="w-20 h-20 bg-[var(--color-correct)]/20 text-[var(--color-correct)] rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle2 className="w-10 h-10" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2">Upload Complete!</h3>
+                  <p className="text-[var(--text-secondary)] mb-8">Your tracked link is ready.</p>
+
+                  <div className="relative group mb-8">
+                    <input 
+                      type="text" 
+                      readOnly 
+                      value={shareUrl}
+                      className="w-full bg-white/5 border border-[var(--border-medium)] rounded-xl px-4 py-4 pr-32 text-sm font-mono focus:outline-none focus:border-[var(--accent-primary)] transition-colors"
+                    />
+                    <button 
+                      onClick={copyToClipboard}
+                      className={`absolute right-2 top-2 bottom-2 px-4 rounded-lg font-mono text-xs uppercase font-bold transition-all ${copied ? 'bg-[var(--color-correct)] text-white' : 'bg-white/10 hover:bg-[var(--accent-primary)] hover:text-white'}`}
+                    >
+                      {copied ? 'Copied!' : 'Copy Link'}
+                    </button>
+                  </div>
+
+                  <div className="flex gap-4 justify-center">
+                    <a href={shareUrl} target="_blank" rel="noopener noreferrer" className="btn-ghost border-[var(--border-medium)]">
+                      <LinkIcon className="w-4 h-4" /> Open Link
+                    </a>
+                    <button onClick={reset} className="btn-primary">
+                      Share Another
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
+
+        {/* History Sidebar */}
+        {showHistory && (
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="lg:w-1/3 glass-card p-6 h-fit max-h-[80vh] overflow-y-auto">
+            <h3 className="font-bold text-lg mb-6 flex items-center gap-2"><History className="w-5 h-5" /> Your Links</h3>
+            
+            {history.length === 0 ? (
+              <p className="text-[var(--text-secondary)] text-sm text-center py-8">No files shared yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {history.map((item) => (
+                  <div key={item.id} className="bg-white/5 border border-[var(--border-medium)] rounded-xl p-4 relative group">
+                    <button onClick={() => removeHistoryItem(item.id)} className="absolute top-4 right-4 text-[var(--text-secondary)] hover:text-[var(--color-wrong)] opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <h4 className="font-bold text-sm truncate pr-8 mb-1">{item.name}</h4>
+                    <div className="flex items-center gap-4 text-xs font-mono text-[var(--text-secondary)] mb-3">
+                      <span className="flex items-center gap-1"><BarChart3 className="w-3 h-3" /> Tracks Clicks</span>
+                      {item.expiresAt && <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {new Date(item.expiresAt) < new Date() ? 'Expired' : 'Active'}</span>}
+                    </div>
+                    <div className="flex gap-2">
+                      <input type="text" readOnly value={item.url} className="flex-1 bg-black/40 border border-[var(--border-subtle)] rounded px-2 py-1 text-xs" />
+                      <button onClick={() => navigator.clipboard.writeText(item.url)} className="bg-white/10 hover:bg-white/20 px-2 py-1 rounded text-xs transition-colors">Copy</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
       </div>
     </div>
   );

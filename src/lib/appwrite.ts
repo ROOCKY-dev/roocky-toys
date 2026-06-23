@@ -6,6 +6,8 @@ export const APPWRITE_CONFIG = {
   dbId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || '',
   usersCollId: process.env.NEXT_PUBLIC_APPWRITE_USERS_COLLECTION_ID || '',
   scoresCollId: process.env.NEXT_PUBLIC_APPWRITE_SCORES_COLLECTION_ID || '',
+  lobbiesCollId: process.env.NEXT_PUBLIC_APPWRITE_LOBBIES_COLLECTION_ID || '',
+  linksCollId: process.env.NEXT_PUBLIC_APPWRITE_LINKS_COLLECTION_ID || '',
   bucketId: process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID || ''
 };
 

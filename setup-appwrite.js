@@ -11,18 +11,31 @@ const dbId = '6a3a94540008e02ed643';
 
 async function setup() {
     try {
-// Lobbies already created
-        console.log("Setting up DropShare Storage Bucket...");
-        const bucket = await storage.createBucket(
-            sdk.ID.unique(),
-            'DropShare',
-            [sdk.Permission.read(sdk.Role.any()), sdk.Permission.create(sdk.Role.any()), sdk.Permission.update(sdk.Role.any()), sdk.Permission.delete(sdk.Role.any())],
-            true, // fileSecurity
-            true, // enabled
-            30000000 // 30MB max
+        console.log("Setting up Appwrite DropShareLinks Collection...");
+        const linksColl = await databases.createCollection(
+            dbId, 
+            sdk.ID.unique(), 
+            'DropShareLinks',
+            [sdk.Permission.read(sdk.Role.any()), sdk.Permission.create(sdk.Role.any()), sdk.Permission.update(sdk.Role.any()), sdk.Permission.delete(sdk.Role.any())]
         );
-        console.log("Created Storage Bucket:", bucket.$id);
+        console.log("Created DropShareLinks Collection:", linksColl.$id);
 
+        await databases.createStringAttribute(dbId, linksColl.$id, 'fileId', 100, true);
+        await new Promise(r => setTimeout(r, 2000));
+        await databases.createStringAttribute(dbId, linksColl.$id, 'fileName', 255, true);
+        await new Promise(r => setTimeout(r, 2000));
+        await databases.createIntegerAttribute(dbId, linksColl.$id, 'fileSize', true);
+        await new Promise(r => setTimeout(r, 2000));
+        await databases.createStringAttribute(dbId, linksColl.$id, 'url', 1000, true);
+        await new Promise(r => setTimeout(r, 2000));
+        await databases.createStringAttribute(dbId, linksColl.$id, 'expiresAt', 100, false);
+        await new Promise(r => setTimeout(r, 2000));
+        await databases.createIntegerAttribute(dbId, linksColl.$id, 'clicks', true, 0);
+        await new Promise(r => setTimeout(r, 2000));
+        await databases.createStringAttribute(dbId, linksColl.$id, 'createdAt', 100, true);
+        await new Promise(r => setTimeout(r, 2000));
+
+        console.log("DropShareLinks setup complete.");
     } catch(err) {
         console.error("Error setting up:", err.message);
     }

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import play from 'play-dl';
+import youtubedl from 'youtube-dl-exec';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -10,17 +10,21 @@ export async function GET(request: Request) {
   }
 
   try {
-    const videoInfo = await play.video_info(url);
-    const details = videoInfo.video_details;
+    const videoInfo: any = await youtubedl(url, {
+      dumpSingleJson: true,
+      noWarnings: true,
+      preferFreeFormats: true,
+      addHeader: ['referer:youtube.com', 'user-agent:Mozilla/5.0']
+    });
 
     return NextResponse.json({
-      title: details.title,
-      thumbnail: details.thumbnails?.[details.thumbnails.length - 1]?.url || `https://i.ytimg.com/vi/${details.id}/maxresdefault.jpg`,
-      duration: details.durationRaw,
-      channel: details.channel?.name || 'Unknown Channel',
+      title: videoInfo.title,
+      thumbnail: videoInfo.thumbnail,
+      duration: new Date(videoInfo.duration * 1000).toISOString().substr(11, 8).replace(/^00:/, ''),
+      channel: videoInfo.uploader || 'Unknown Channel',
     });
   } catch (error: any) {
     console.error('YT Fetch Error:', error);
-    return NextResponse.json({ error: 'Failed to fetch video information. It might be age-restricted or unavailable.' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch video. Ensure the link is correct and public.' }, { status: 500 });
   }
 }
