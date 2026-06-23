@@ -1,17 +1,16 @@
 import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono } from 'next/font/google';
+import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import MouseGlow from '@/components/layout/MouseGlow';
 import Navbar from '@/components/layout/Navbar';
 
-const inter = Inter({ 
+const geistSans = Geist({
+  variable: '--font-geist-sans',
   subsets: ['latin'],
-  variable: '--font-inter',
 });
 
-const jetbrainsMono = JetBrains_Mono({ 
+const geistMono = Geist_Mono({
+  variable: '--font-geist-mono',
   subsets: ['latin'],
-  variable: '--font-jetbrains-mono',
 });
 
 export const metadata: Metadata = {
@@ -25,16 +24,46 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans`}>
-        <div className="grain-overlay" />
-        <MouseGlow />
-        
+    <html lang="en" className="scroll-smooth">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
+        style={{ background: '#050508', color: '#f0f0f5' }}
+        suppressHydrationWarning
+      >
+        {/* Film Grain Overlay */}
+        <div className="grain-overlay" aria-hidden="true" />
+
+        {/* Mouse-following Glow */}
+        <div id="mouse-glow" className="mouse-glow" aria-hidden="true" suppressHydrationWarning />
+
         <Navbar />
         
-        <main className="relative z-10 w-full mx-auto pb-24">
+        {/* Main layout container ensuring content is below navbar */}
+        <div className="relative z-10 w-full pt-20">
           {children}
-        </main>
+        </div>
+
+        {/* Mouse Glow Tracker Script from roocky.dev */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(){
+                if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                const glow = document.getElementById('mouse-glow');
+                if (!glow) return;
+                let rAF;
+                window.addEventListener('mousemove', (e) => {
+                  if (rAF) return;
+                  rAF = requestAnimationFrame(() => {
+                    glow.style.left = e.clientX + 'px';
+                    glow.style.top = e.clientY + 'px';
+                    rAF = null;
+                  });
+                });
+              })();
+            `,
+          }}
+        />
       </body>
     </html>
   );
